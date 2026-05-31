@@ -1,211 +1,388 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth dark">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project RTS | Tactical Real-Time Strategy</title>
-    <!-- Каллиграфическая фавиконка игры -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22 width=%22100%22 height=%22100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23000000%22/><text y=%2268%22 x=%2250%22 font-family=%22'Brush Script MT', 'Apple Chancery', cursive%22 font-size=%2260%22 font-weight=%22bold%22 fill=%22%2310b981%22 text-anchor=%22middle%22>RTS</text></svg>">
+    <title>My Name Is Alexander | Tactical RTS</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22 width=%22100%22 height=%22100%22><rect width=%22100%22 height=%22100%22 rx=%220%22 fill=%22%231c2541%22/><text y=%2270%22 x=%2250%22 font-family=%22'Courier New', monospace%22 font-size=%2260%22 font-weight=%22bold%22 fill=%22%23f4f1de%22 text-anchor=%22middle%22>А</text></svg>">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
+                    colors: {
+                        sovietBlue: '#1c2541', // Чернильно-синий ведомственный
+                        sovietPaper: '#f4f1de', // Желтоватая советская бумага
+                        sovietInk: '#0b0c10', // Типографская сажа
+                        sovietRed: '#9e2a2b' // Сургучно-красный для штампов
+                    },
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Courier Prime', 'monospace'],
+                        serif: ['Playfair Display', 'serif'],
                     },
                 },
             },
         }
     </script>
     <style>
-        body { background-color: #0a0a0a; color: #a3a3a3; }
+        body { 
+            background-color: #f4f1de; 
+            color: #0b0c10;
+            background-image: linear-gradient(rgba(11, 12, 16, 0.03) 1px, transparent 1px);
+            background-size: 100% 20px;
+        }
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #0a0a0a; }
-        ::-webkit-scrollbar-thumb { background: #222222; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+        ::-webkit-scrollbar-track { background: #f4f1de; }
+        ::-webkit-scrollbar-thumb { background: #1c2541; }
+        
+        .film-strip-bg::before, .film-strip-bg::after {
+            content: "□  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □  □";
+            position: absolute;
+            left: 0;
+            width: 200%;
+            font-family: monospace;
+            font-size: 11px;
+            letter-spacing: 16px;
+            color: #1c2541;
+            white-space: nowrap;
+            animation: moveStrip 30s linear infinite;
+        }
+        .film-strip-bg::before { top: 4px; }
+        .film-strip-bg::after { bottom: 4px; }
+
+        .film-scroller {
+            display: flex;
+            gap: 24px;
+            width: max-content;
+            animation: moveStrip 35s linear infinite;
+        }
+
+        @keyframes moveStrip {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
     </style>
 </head>
-<body class="antialiased font-sans selection:bg-neutral-800 selection:text-emerald-400">
+<body class="antialiased font-mono selection:bg-[#1c2541] selection:text-[#f4f1de]" x-data="gameApp()">
 
-    <!-- Уведомления (Toast) -->
-    <div class="fixed bottom-5 right-5 z-50 pointer-events-none" x-data="{ show: false }" @notify.window="show = true; setTimeout(() => show = false, 3000)">
-        <div x-show="show" x-transition class="bg-neutral-900 text-neutral-50 px-4 py-2.5 rounded-lg text-xs font-semibold shadow-xl flex items-center gap-2 border border-neutral-800">
-            <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-            <span>Welcome to the tactical grid. Stay tuned!</span>
+    <!-- ТРЕВОЖНЫЙ СИГНАЛ / TOAST -->
+    <div class="fixed bottom-5 right-5 z-50 pointer-events-none" x-show="toast" x-transition>
+        <div class="bg-sovietBlue text-sovietPaper px-4 py-2.5 border-4 border-double border-sovietPaper text-xs font-bold shadow-2xl flex items-center gap-2">
+            <span class="w-1.5 h-1.5 bg-sovietRed animate-ping"></span>
+            <span x-text="lang === 'en' ? 'ARCHIVE DATA ACCESS REQUESTED.' : 'ЗАПРОШЕН ДОСТУП К АРХИВУ МИЛИЦИИ.'"></span>
         </div>
     </div>
 
-    <div class="max-w-3xl mx-auto px-6 py-16 sm:py-24 space-y-20" x-data="gameLauncherApp()">
-        
-        <!-- ХЕДЕР / СТАТУС РАЗРАБОТКИ -->
-        <header class="space-y-6">
-            <div class="flex items-center justify-between border-b border-neutral-900 pb-4">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border bg-[#141414] border-[#222222]">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span class="text-neutral-300 font-mono text-[11px]" x-text="'STAGE: ALPHA DEVELOPMENT'"></span>
-                </div>
-                <div class="text-xs font-mono text-neutral-500 hover:text-emerald-400 transition-colors cursor-pointer" @click="copyDevContact()">
-                    @MrKirri Dev Log
+    <!-- ВЕДОМСТВЕННАЯ ШАПКА ГАЗЕТЫ -->
+    <div class="max-w-4xl mx-auto px-6 pt-6">
+        <div class="flex justify-between items-center border-b-4 border-sovietBlue pb-4 mb-4">
+            <div class="flex items-center gap-3">
+                <!-- Ведомственный геометрический знак (без прямой символики) -->
+                <div class="text-xl text-sovietRed select-none">✦ ❖ ✦</div>
+                <div class="text-[11px] font-bold tracking-widest text-sovietBlue uppercase leading-none">
+                    <span x-text="lang === 'en' ? 'INTERNAL AFFAIRS COMPARTMENT // BULLETIN' : 'ВЕДОМСТВЕННЫЙ ВЕСТНИК // ОТДЕЛ КАДРОВ'"></span>
                 </div>
             </div>
-
-            <!-- Главный тайтл игры -->
-            <div class="space-y-3">
-                <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-neutral-100">Project <span class="text-emerald-500">RTS</span></h1>
-                <p class="text-lg sm:text-xl font-medium text-neutral-400 tracking-wide">A minimalist real-time strategy focusing on tactical asset pipelines and macro-control execution.</p>
-            </div>
-        </header>
-
-        <!-- ГЛАВНЫЕ КНОПКИ ДЕЙСТВИЯ -->
-        <section class="flex flex-wrap items-center gap-4 pt-2">
-            <a href="#subscribe" class="px-5 py-2.5 text-sm font-semibold rounded-lg bg-emerald-500 text-black hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/10">
-                Join Playtest
-            </a>
-            <button @click="$dispatch('notify')" class="px-5 py-2.5 text-sm font-semibold rounded-lg bg-[#141414] border border-[#222222] text-neutral-200 hover:border-neutral-700 transition-all">
-                Pitch Deck & GDD
+            <button @click="toggleLang()" class="border-2 border-sovietBlue bg-sovietBlue text-sovietPaper hover:bg-transparent hover:text-sovietBlue px-3 py-1 text-xs font-bold transition-all uppercase tracking-wider">
+                <span x-text="lang === 'en' ? 'RU' : 'EN'"></span>
             </button>
-            <div class="hidden sm:block h-6 w-px bg-[#222222] mx-1"></div>
-            <span class="text-xs font-mono text-neutral-500">Coming to Itch.io & Steam</span>
-        </section>
+        </div>
 
-        <!-- БЕНТО ГРИД: КЛЮЧЕВЫЕ ФИЧИ (CORE PILLARS) -->
-        <section class="space-y-4">
-            <div class="border-b border-neutral-900 pb-3">
-                <h2 class="text-xs font-bold text-neutral-500 uppercase tracking-widest">Core Gameplay Mechanics</h2>
+        <!-- Рубрикатор промотки -->
+        <nav class="grid grid-cols-3 sm:grid-cols-5 border-4 border-double border-sovietBlue bg-sovietPaper p-1 text-center text-xs font-bold">
+            <a href="#stage" class="py-1.5 border border-transparent hover:bg-sovietBlue hover:text-sovietPaper transition-all" x-text="lang === 'en' ? '▲ STAGE' : '▲ СТАДИЯ'"></a>
+            <a href="#about" class="py-1.5 border border-transparent hover:bg-sovietBlue hover:text-sovietPaper transition-all" x-text="lang === 'en' ? '▲ INTEL' : '▲ ОПИСАНИЕ'"></a>
+            <a href="#characters" class="py-1.5 border border-transparent hover:bg-sovietBlue hover:text-sovietPaper transition-all" x-text="lang === 'en' ? '▲ DOSSIERS' : '▲ КАРТОТЕКА'"></a>
+            <a href="#team" class="py-1.5 border border-transparent hover:bg-sovietBlue hover:text-sovietPaper transition-all" x-text="lang === 'en' ? '▲ BUREAU' : '▲ КОМАНДА'"></a>
+            <a href="#platforms" class="py-1.5 border border-transparent hover:bg-sovietBlue hover:text-sovietPaper transition-all col-span-3 sm:col-span-1" x-text="lang === 'en' ? '▲ DEPLOY' : '▲ ВЫПУСК'"></a>
+        </nav>
+    </div>
+
+    <!-- ЦЕНТРАЛЬНЫЙ ЗАГОЛОВОК И УВЕЛИЧЕННАЯ КИНОВЕРТИКАЛЬ -->
+    <header class="relative w-full border-t-4 border-b-4 border-sovietBlue bg-[#ebdcc4] my-8 py-20 flex flex-col items-center justify-center overflow-hidden">
+        
+        <!-- Плывущая кинолента с большими кадрами -->
+        <div class="film-strip-bg absolute inset-0 w-full flex items-center opacity-25 grayscale select-none pointer-events-none py-4">
+            <div class="film-scroller px-4">
+                <div class="w-72 h-40 bg-sovietBlue border-4 border-double border-sovietPaper flex items-center justify-center text-xs text-sovietPaper/30 font-bold tracking-widest">[ СЕКТОР_ОБЗОР_01 ]</div>
+                <div class="w-72 h-40 bg-sovietBlue border-4 border-double border-sovietPaper flex items-center justify-center text-xs text-sovietPaper/30 font-bold tracking-widest">[ СНАБЖЕНИЕ_УЗЕЛ_02 ]</div>
+                <div class="w-72 h-40 bg-sovietBlue border-4 border-double border-sovietPaper flex items-center justify-center text-xs text-sovietPaper/30 font-bold tracking-widest">[ ПРОМ_ЗОНА_03 ]</div>
+                <div class="w-72 h-40 bg-sovietBlue border-4 border-double border-sovietPaper flex items-center justify-center text-xs text-sovietPaper/30 font-bold tracking-widest">[ КАРТА_МАНЕВРОВ_04 ]</div>
+                <!-- Дубликаты -->
+                <div class="w-72 h-40 bg-sovietBlue border-4 border-double border-sovietPaper flex items-center justify-center text-xs text-sovietPaper/30 font-bold tracking-widest">[ СЕКТОР_ОБЗОР_01 ]</div>
+                <div class="w-72 h-40 bg-sovietBlue border-4 border-double border-sovietPaper flex items-center justify-center text-xs text-sovietPaper/30 font-bold tracking-widest">[ СНАБЖЕНИЕ_УЗЕЛ_02 ]</div>
+                <div class="w-72 h-40 bg-sovietBlue border-4 border-double border-sovietPaper flex items-center justify-center text-xs text-sovietPaper/30 font-bold tracking-widest">[ ПРОМ_ЗОНА_03 ]</div>
+                <div class="w-72 h-40 bg-sovietBlue border-4 border-double border-sovietPaper flex items-center justify-center text-xs text-sovietPaper/30 font-bold tracking-widest">[ КАРТА_МАНЕВРОВ_04 ]</div>
+            </div>
+        </div>
+
+        <!-- Контент строго по центру -->
+        <div class="relative z-10 text-center space-y-6 px-6 max-w-3xl">
+            <div>
+                <h1 class="text-4xl sm:text-7xl font-bold font-serif text-sovietBlue italic drop-shadow-[0_2px_4px_rgba(244,241,222,0.9)] tracking-tight">
+                    My Name Is Alexander
+                </h1>
             </div>
             
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <!-- Фича 1 -->
-                <div class="bg-[#141414] border border-[#222222] rounded-xl p-5 hover:border-neutral-800 transition-all flex flex-col justify-between min-h-[140px]">
-                    <div class="text-emerald-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg></div>
-                    <div class="space-y-1">
-                        <h3 class="text-sm font-semibold text-neutral-200">Asset Pipelines</h3>
-                        <p class="text-xs text-neutral-500 leading-relaxed">No bloat resources. Build, refine, and deploy combat units via integrated supply lines.</p>
-                    </div>
+            <div class="flex flex-col items-center space-y-4">
+                <a href="#playtest-form" class="inline-block w-full sm:w-auto px-10 py-4 text-xs font-bold bg-sovietBlue text-sovietPaper hover:bg-transparent hover:text-sovietBlue transition-all border-4 border-sovietBlue uppercase tracking-widest shadow-xl">
+                    <span x-text="lang === 'en' ? 'Request Playtest Access' : 'Запросить доступ к плейтесту'"></span>
+                </a>
+                <div class="text-[10px] font-bold text-sovietRed uppercase tracking-wider select-none">[ ❖ ОФИЦИАЛЬНЫЙ СЛИС ИНФОРМАЦИИ ❖ ]</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ОСНОВНАЯ ГАЗЕТНАЯ СТРУКТУРА -->
+    <div class="max-w-4xl mx-auto px-6 space-y-12">
+        
+        <!-- СТАДИЯ РАЗРАБОТКИ -->
+        <section id="stage" class="space-y-4">
+            <div class="border-b-2 border-sovietBlue pb-1 flex justify-between items-center">
+                <h2 class="text-xs font-bold uppercase tracking-wider" x-text="lang === 'en' ? '✦ SECTION I: PRODUCTION MILESTONE' : '✦ РАЗДЕЛ I: ПРОИЗВОДСТВЕННЫЙ ЭТАП'"></h2>
+                <span class="text-xs text-sovietRed select-none">●</span>
+            </div>
+            <div class="border-2 border-sovietBlue p-6 space-y-4 bg-[#ebdcc4]/30 relative">
+                <div class="absolute top-2 right-2 border border-sovietRed text-sovietRed text-[8px] font-bold px-1 rotate-3 select-none">КОНТРОЛЬ ОТК</div>
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <span class="text-sm font-bold uppercase" x-text="lang === 'en' ? 'Current Code Assembly Status:' : 'Текущий статус сборки кода:'"></span>
+                    <span class="px-2 py-0.5 text-[10px] font-bold border border-sovietBlue bg-sovietBlue text-sovietPaper" x-text="lang === 'en' ? 'ACTIVE ALPHA' : 'АКТИВНАЯ АЛЬФА'"></span>
                 </div>
-                <!-- Фича 2 -->
-                <div class="bg-[#141414] border border-[#222222] rounded-xl p-5 hover:border-neutral-800 transition-all flex flex-col justify-between min-h-[140px]">
-                    <div class="text-emerald-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 border-t border-sovietBlue/20 pt-4 text-xs">
                     <div class="space-y-1">
-                        <h3 class="text-sm font-semibold text-neutral-200">High Team Velocity</h3>
-                        <p class="text-xs text-neutral-500 leading-relaxed">Optimized performance metrics under heavy micro-management. Zero simulation lag.</p>
+                        <div class="font-bold uppercase text-sovietBlue" x-text="lang === 'en' ? 'System Readiness:' : 'Готовность систем:'"></div>
+                        <p class="text-sovietInk/80 leading-relaxed" x-text="lang === 'en' ? 'Core architectural logic locked. GDD established, asset distribution pipelines integrated.' : 'Логическое ядро симуляции заблокировано. GDD утвержден, распределительные цепочки интегрированы.'"></p>
                     </div>
-                </div>
-                <!-- Фича 3 -->
-                <div class="bg-[#141414] border border-[#222222] rounded-xl p-5 hover:border-neutral-800 transition-all flex flex-col justify-between min-h-[140px]">
-                    <div class="text-emerald-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
                     <div class="space-y-1">
-                        <h3 class="text-sm font-semibold text-neutral-200">Tactical Alignment</h3>
-                        <p class="text-xs text-neutral-500 leading-relaxed">Artistic integrity meets technical fidelity. Every combat vector is calculated in real time.</p>
+                        <div class="font-bold uppercase text-sovietBlue" x-text="lang === 'en' ? 'Current Priority:' : 'Текущий приоритет:'"></div>
+                        <p class="text-sovietInk/80 leading-relaxed" x-text="lang === 'en' ? 'Assembling vertical slice milestone, calibrating macro control nodes, tactical AI testing.' : 'Сборка вех вертикального среза, калибровка узлов макро-контроля, стресс-тестирование тактического ИИ.'"></p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- РОАДМАП ПРОЕКТА (ИНТЕРАКТИВНЫЙ ТАБЛИЧНЫЙ ВИД) -->
-        <section class="space-y-4">
-            <div class="border-b border-neutral-900 pb-3">
-                <h2 class="text-xs font-bold text-neutral-500 uppercase tracking-widest">Production Roadmap</h2>
+        <!-- ОПИСАНИЕ ИГРЫ -->
+        <section id="about" class="space-y-4">
+            <div class="border-b-2 border-sovietBlue pb-1 flex justify-between items-center">
+                <h2 class="text-xs font-bold uppercase tracking-wider" x-text="lang === 'en' ? '✦ SECTION II: STRATEGIC INTEL' : '✦ РАЗДЕЛ II: СТРАТЕГИЧЕСКАЯ СВОДКА'"></h2>
+                <span class="text-xs text-sovietRed select-none">●</span>
             </div>
-
-            <div class="bg-[#141414] border border-[#222222] rounded-xl overflow-hidden">
-                <!-- Навигация по фазам -->
-                <div class="flex border-b border-[#222222] text-xs font-mono">
-                    <button @click="currentPhase = 'phase1'" class="flex-1 py-3 text-center transition-colors" :class="currentPhase === 'phase1' ? 'text-emerald-400 bg-[#1a1a1a] font-bold border-b border-emerald-500' : 'text-neutral-500 hover:text-neutral-400'">PHASE 01: CORE</button>
-                    <button @click="currentPhase = 'phase2'" class="flex-1 py-3 text-center transition-colors" :class="currentPhase === 'phase2' ? 'text-emerald-400 bg-[#1a1a1a] font-bold border-b border-emerald-500' : 'text-neutral-500 hover:text-neutral-400'">PHASE 02: SCALE</button>
-                    <button @click="currentPhase = 'phase3'" class="flex-1 py-3 text-center transition-colors" :class="currentPhase === 'phase3' ? 'text-emerald-400 bg-[#1a1a1a] font-bold border-b border-emerald-500' : 'text-neutral-500 hover:text-neutral-400'">PHASE 03: RELEASE</button>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div class="p-4 border-2 border-sovietBlue space-y-2 relative">
+                    <div class="absolute bottom-1 right-2 text-[10px] text-sovietBlue/20 select-none">◆ 01</div>
+                    <h3 class="font-bold uppercase border-b border-sovietBlue pb-1 text-sovietBlue" x-text="lang === 'en' ? 'Industrial Logistics' : 'Промышленная логистика'"></h3>
+                    <p class="text-sovietInk/80 leading-relaxed" x-text="lang === 'en' ? 'Victory demands systematic logistical configuration. Severing an operational vector paralyzes industrial production.' : 'Победа требует системного выстраивания линий снабжения. Обрыв логистического вектора парализует оборонные заводы.'"></p>
                 </div>
-
-                <!-- Контент фаз роадмапа -->
-                <div class="p-6 text-sm text-neutral-400 min-h-[120px]">
-                    <div x-show="currentPhase === 'phase1'" x-transition class="space-y-2">
-                        <div class="flex items-center gap-2 text-xs text-emerald-400 font-mono">● COMPLETED</div>
-                        <p class="text-neutral-200 font-medium">Architecture & Game Design Documentation (GDD)</p>
-                        <p class="text-xs text-neutral-500">Establishing asset pipelines, unit stats balance matrices, and base pathfinding nodes logic.</p>
-                    </div>
-                    <div x-show="currentPhase === 'phase2'" x-transition class="space-y-2">
-                        <div class="flex items-center gap-2 text-xs text-amber-500 font-mono">▲ IN PROGRESS</div>
-                        <p class="text-neutral-200 font-medium">Cross-functional System Assembly & Beta Build</p>
-                        <p class="text-xs text-neutral-500">Integrating illustrator concept assets, refining combat UI, and locking the playtest milestone scope.</p>
-                    </div>
-                    <div x-show="currentPhase === 'phase3'" x-transition class="space-y-2">
-                        <div class="flex items-center gap-2 text-xs text-neutral-600 font-mono">○ PLANNED</div>
-                        <p class="text-neutral-200 font-medium">Public Beta Launch on Itch.io & Feedback Loop</p>
-                        <p class="text-xs text-neutral-500">Deploying vertical slice, gathering telemetry metrics, and optimizing sprint iterations for the Steam upgrade.</p>
-                    </div>
+                <div class="p-4 border-2 border-sovietBlue space-y-2 relative">
+                    <div class="absolute bottom-1 right-2 text-[10px] text-sovietBlue/20 select-none">◆ 02</div>
+                    <h3 class="font-bold uppercase border-b border-sovietBlue pb-1 text-sovietBlue" x-text="lang === 'en' ? 'Macro Vector Alignment' : 'Выравнивание макро-векторов'"></h3>
+                    <p class="text-sovietInk/80 leading-relaxed" x-text="lang === 'en' ? 'No high-velocity chaotic clicks. Every operation requires precise micro management and deterministic deployment calculations.' : 'Никакого хаотичного кликанья. Каждая операция требует холодного планирования и детерминированного расчета маневров.'"></p>
                 </div>
             </div>
         </section>
 
-        <!-- ФОРМА ПОДПИСКИ НА ПЛЕЙТЕСТ -->
-        <section id="subscribe" class="bg-[#141414] border border-[#222222] rounded-xl p-6 space-y-4">
+        <!-- МИЛИЦЕЙСКАЯ КАРТОТЕКА (СМАХИВАНИЕ СТРЕЛКАМИ / 21 ПЕРСОНАЖ) -->
+        <section id="characters" class="space-y-4" x-data="characterCarousel()">
+            <div class="border-b-2 border-sovietBlue pb-1 flex justify-between items-center">
+                <h2 class="text-xs font-bold uppercase tracking-wider" x-text="lang === 'en' ? '✦ SECTION III: OPERATIVE DOSSIERS (MILITIA RECAP)' : '✦ РАЗДЕЛ III: УЧЕТНЫЕ ДЕЛА УР (АРХИВ МИЛИЦИИ)'"></h2>
+                <span class="text-xs text-sovietRed select-none">❖</span>
+            </div>
+
+            <!-- ИНТЕРАКТИВНЫЙ БЛАНК ДОСЬЕ -->
+            <div class="border-4 border-sovietBlue bg-[#ebdcc4]/40 p-6 space-y-6 relative">
+                <!-- Печать ведомства -->
+                <div class="absolute top-4 right-4 border-4 border-double border-sovietRed/30 text-sovietRed/40 text-[9px] font-bold p-2 rounded-full transform -rotate-12 select-none pointer-events-none text-center leading-tight">
+                    УПРАВЛЕНИЕ<br>УГОЛОВНОГО РОЗЫСКА
+                </div>
+
+                <!-- Шапка бланка -->
+                <div class="flex justify-between items-center border-b border-sovietBlue pb-2 text-[11px] font-bold uppercase">
+                    <div class="text-sovietBlue">
+                        <span x-text="lang === 'en' ? 'CLASSIFIED DOSSIER ' : 'ЛИЧНОЕ ДЕЛО №'"></span>
+                        <span class="text-sovietInk" x-text="getFormattedIndex()"></span>
+                        <span class="text-sovietBlue/50" x-text="' / 21'"></span>
+                    </div>
+                    <div class="text-sovietRed font-bold" x-text="lang === 'en' ? 'SECRET' : 'СЕКРЕТНО'"></div>
+                </div>
+
+                <!-- Основная карточка персонажа (Контент) -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 items-start">
+                    <!-- МЕСТО ПОД ФОТО (АРТ) СОВЕТСКИЙ ТРАФАРЕТНЫЙ СТИЛЬ -->
+                    <div class="border-2 border-dashed border-sovietBlue bg-sovietPaper p-2 space-y-2 text-center shadow-inner">
+                        <div class="aspect-[3/4] bg-[#ebdcc4] border border-sovietBlue/30 flex flex-col items-center justify-center text-sovietBlue/30 select-none">
+                            <span class="text-3xl">❖</span>
+                            <span class="text-[9px] uppercase tracking-tighter mt-2 font-bold" x-text="lang === 'en' ? 'PHOTO PLACEHOLDER' : 'МЕСТО ДЛЯ ФОТО'"></span>
+                        </div>
+                        <div class="text-[9px] font-bold text-sovietBlue border-t border-sovietBlue/20 pt-1 uppercase" x-text="'ID-' + (currentIndex + 1042)"></div>
+                    </div>
+
+                    <!-- ТЕКСТОВОЕ ОПИСАНИЕ ДОСЬЕ -->
+                    <div class="sm:col-span-2 space-y-4 text-xs">
+                        <div>
+                            <div class="text-[10px] uppercase font-bold text-sovietBlue/60" x-text="lang === 'en' ? 'Operative Identity:' : 'Личность сотрудника:'"></div>
+                            <div class="text-lg font-bold text-sovietBlue border-b border-sovietBlue/20 pb-1" x-text="getCurrentName()"></div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 text-[11px]">
+                            <div>
+                                <span class="font-bold text-sovietBlue/60" x-text="lang === 'en' ? 'STATUS:' : 'СТАТУС:'"></span>
+                                <span class="font-bold text-sovietRed" x-text="lang === 'en' ? 'VERIFIED' : 'ПРОВЕРЕН'"></span>
+                            </div>
+                            <div>
+                                <span class="font-bold text-sovietBlue/60" x-text="lang === 'en' ? 'SECTOR:' : 'ПОДБАЗА:'"></span>
+                                <span class="font-bold text-sovietInk" x-text="'K-4 / MO'"></span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1 pt-2 border-t border-sovietBlue/10">
+                            <div class="text-[10px] uppercase font-bold text-sovietBlue/60" x-text="lang === 'en' ? 'Operational Bio / Summary:' : 'Оперативная сводка / Описание:'"></div>
+                            <p class="text-sovietInk/90 leading-relaxed italic" x-text="getCurrentBio()"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- СТРЕЛОЧКИ СМАХИВАНИЯ / ПЕРЕКЛЮЧЕНИЯ ПО ЦЕНТРУ СНИЗУ -->
+                <div class="flex justify-between items-center border-t border-sovietBlue pt-4">
+                    <button @click="prev()" class="px-4 py-2 border-2 border-sovietBlue bg-sovietPaper hover:bg-sovietBlue hover:text-sovietPaper text-xs font-bold transition-colors select-none">
+                        ◄ <span x-text="lang === 'en' ? 'PREV' : 'НАЗАД'"></span>
+                    </button>
+                    
+                    <!-- Архивный маркер страниц -->
+                    <div class="text-[10px] font-bold text-sovietBlue/60 uppercase tracking-widest font-mono">
+                        [ <span class="text-sovietBlue" x-text="currentIndex + 1"></span> / 21 ]
+                    </div>
+
+                    <button @click="next()" class="px-4 py-2 border-2 border-sovietBlue bg-sovietPaper hover:bg-sovietBlue hover:text-sovietPaper text-xs font-bold transition-colors select-none">
+                        <span x-text="lang === 'en' ? 'NEXT' : 'ВПЕРЕД'"></span> ►
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- КОМАНДА РАЗРАБОТЧИКОВ (5 ЧЕЛОВЕК) -->
+        <section id="team" class="space-y-4">
+            <div class="border-b-2 border-sovietBlue pb-1 flex justify-between items-center">
+                <h2 class="text-xs font-bold uppercase tracking-wider" x-text="lang === 'en' ? '✦ SECTION IV: ENGINEERING BUREAU (5 MEMBERS)' : '✦ РАЗДЕЛ IV: КОНСТРУКТОРСКОЕ БЮРО (5 УЧАСТНИКОВ)'"></h2>
+                <span class="text-xs text-sovietRed select-none">●</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs text-center">
+                <div class="p-3 border-2 border-sovietBlue bg-[#ebdcc4]/20">
+                    <div class="font-bold text-sovietBlue">K. Tumanov</div>
+                    <div class="text-[10px] text-sovietInk/60 uppercase tracking-tight mt-1" x-text="lang === 'en' ? 'Project / Product Manager' : 'Управление / PM'"></div>
+                </div>
+                <div class="p-3 border-2 border-sovietBlue bg-[#ebdcc4]/20">
+                    <div class="font-bold">Member 02</div>
+                    <div class="text-[10px] text-sovietInk/60 uppercase tracking-tight mt-1" x-text="lang === 'en' ? 'Lead Logic Dev' : 'Инженер логики'"></div>
+                </div>
+                <div class="p-3 border-2 border-sovietBlue bg-[#ebdcc4]/20">
+                    <div class="font-bold">Member 03</div>
+                    <div class="text-[10px] text-sovietInk/60 uppercase tracking-tight mt-1" x-text="lang === 'en' ? 'Visual Artist' : 'Художник-граф'"></div>
+                </div>
+                <div class="p-3 border-2 border-sovietBlue bg-[#ebdcc4]/20">
+                    <div class="font-bold">Member 04</div>
+                    <div class="text-[10px] text-sovietInk/60 uppercase tracking-tight mt-1" x-text="lang === 'en' ? 'Sound Architect' : 'Звукорежиссер'"></div>
+                </div>
+                <div class="p-3 border-2 border-sovietBlue bg-[#ebdcc4]/20 col-span-2 sm:col-span-1">
+                    <div class="font-bold">Member 05</div>
+                    <div class="text-[10px] text-sovietInk/60 uppercase tracking-tight mt-1" x-text="lang === 'en' ? 'Telemetry / QA' : 'Тестирование / ОТК'"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ПЛАТФОРМЫ И СРОКИ РЕЛИЗА -->
+        <section id="platforms" class="space-y-4">
+            <div class="border-b-2 border-sovietBlue pb-1 flex justify-between items-center">
+                <h2 class="text-xs font-bold uppercase tracking-wider" x-text="lang === 'en' ? '✦ SECTION V: RECEPTACLE TELEGRAM' : '✦ РАЗДЕЛ V: ПРИЕМНАЯ ТЕЛЕГРАММА'"></h2>
+                <span class="text-xs text-sovietRed select-none">●</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div class="p-4 border-2 border-sovietBlue space-y-1">
+                    <div class="text-sovietBlue/60 font-bold uppercase" x-text="lang === 'en' ? 'TARGET COMPARTMENTS:' : 'ЦЕЛЕВЫЕ СЕКТОРЫ ВЫПУСКА:'"></div>
+                    <div class="font-bold tracking-wider text-sovietBlue">ITCH.IO / STEAM / MAC OS (SILICON)</div>
+                </div>
+                <div class="p-4 border-2 border-sovietBlue space-y-1">
+                    <div class="text-sovietBlue/60 font-bold uppercase" x-text="lang === 'en' ? 'FIRST EXPEDITION RELEASE:' : 'ПЕРВЫЙ ОТКРЫТЫЙ СЛИС:'"></div>
+                    <div class="font-bold tracking-wider uppercase text-sovietRed" x-text="lang === 'en' ? 'LATE 2026' : 'КОНЕЦ 2026 ГОДА'"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ФОРМА СБОРА ДАННЫХ -->
+        <section id="playtest-form" class="border-4 border-double border-sovietBlue p-6 space-y-4 bg-[#ebdcc4]/50">
             <div class="space-y-1">
-                <h3 class="text-base font-semibold text-neutral-200">Secure Playtest Access</h3>
-                <p class="text-xs text-neutral-500">Leave your email to be notified when the closed alpha builds and vertical slice drops on Itch.io.</p>
+                <h3 class="text-sm font-bold uppercase text-sovietBlue" x-text="lang === 'en' ? 'REGISTER FOR SECURE TRANSMISSION' : 'РЕГИСТРАЦИЯ В ТАКТИЧЕСКОМ ПУЛЕ'"></h3>
+                <p class="text-xs text-sovietInk/60" x-text="lang === 'en' ? 'Provide your digital link box to accept secure alpha builds on Itch.io.' : 'Оставьте координаты своей цифровой почты, чтобы принять шифрограмму со ссылкой на закрытый альфа-билд.'"></p>
             </div>
 
-            <form @submit.prevent="submitEmail()" class="flex flex-col sm:flex-row gap-2">
+            <form @submit.prevent="toast = true; setTimeout(() => toast = false, 3000); $el.reset()" class="flex flex-col sm:flex-row gap-2 pt-1">
                 <input 
                     type="email" 
-                    x-model="emailInput" 
-                    placeholder="Enter your commander email" 
                     required
-                    class="flex-1 px-3.5 py-2 text-sm bg-[#0a0a0a] border border-[#222222] rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-emerald-500 transition-colors"
+                    placeholder="commander@militia-archive.com" 
+                    class="flex-1 px-3.5 py-2 text-xs bg-sovietPaper border-2 border-sovietBlue text-sovietInk placeholder-sovietBlue/30 focus:outline-none focus:bg-white transition-colors font-bold"
                 >
-                <button type="submit" class="px-4 py-2 text-sm font-semibold rounded-lg bg-neutral-100 text-neutral-950 hover:bg-neutral-200 transition-colors shrink-0">
-                    Request Invite
+                <button type="submit" class="px-6 py-2 text-xs font-bold bg-sovietBlue text-sovietPaper hover:bg-transparent hover:text-sovietBlue transition-colors border-2 border-sovietBlue uppercase tracking-wider shrink-0">
+                    <span x-text="lang === 'en' ? 'Submit Transmission' : 'Передать данные'"></span>
                 </button>
             </form>
         </section>
 
-        <!-- ТЕХНИЧЕСКИЙ СПЕК / СТЕК РАЗРАБОТКИ -->
-        <section class="space-y-3">
-            <div class="border-b border-neutral-900 pb-2">
-                <h3 class="text-xs font-bold text-neutral-500 uppercase tracking-widest">Engine & Pipeline Metrics</h3>
-            </div>
-            <div class="flex flex-wrap gap-2 text-xs text-neutral-400 font-mono">
-                <span class="px-2.5 py-1 bg-[#141414] border border-[#222222] rounded">Custom Logic Architecture</span>
-                <span class="px-2.5 py-1 bg-[#141414] border border-[#222222] rounded">Deterministic Simulation</span>
-                <span class="px-2.5 py-1 bg-[#141414] border border-[#222222] rounded">60 FPS Locked UI</span>
-            </div>
-        </section>
-
-        <!-- ФУТЕР -->
-        <footer class="pt-8 border-t border-neutral-900 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-neutral-600">
-            <p>© 2026 Project RTS. Driven by pure precision.</p>
-            <div class="flex gap-4 font-mono text-[10px] tracking-wider uppercase">
-                <a href="https://t.me/MrKirri" target="_blank" rel="noopener noreferrer" class="hover:text-emerald-400 transition-colors">Telegram</a>
+        <!-- ФУТЕР ГАЗЕТЫ -->
+        <footer class="pt-6 border-t-4 border-double border-sovietBlue flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] text-sovietBlue/60 pb-12 font-bold">
+            <p x-text="lang === 'en' ? '© 2026 My Name Is Alexander. Precision Logistical Framework.' : '© 2026 My Name Is Alexander. Все материалы проверены цензурой.'"></p>
+            <div class="flex gap-4 uppercase tracking-wider">
+                <a href="https://t.me/MrKirri" target="_blank" rel="noopener noreferrer" class="hover:underline text-sovietRed">TELEGRAM: @MrKirri</a>
                 <span>|</span>
-                <span class="text-neutral-700">A18 Pro Engine Optimized</span>
+                <span x-text="lang === 'en' ? 'CLOUD ENVIRONMENT' : 'СДЕЛАНО В ОБЛАКЕ'"></span>
             </div>
         </footer>
 
     </div>
 
     <script>
-        function gameLauncherApp() {
+        function gameApp() {
             return {
-                currentPhase: 'phase2', // Активная фаза по умолчанию
-                emailInput: '',
-                
-                submitEmail() {
-                    if(this.emailInput.trim() !== '') {
-                        // Эмуляция отправки или сохранения
-                        this.$dispatch('notify');
-                        this.emailInput = '';
-                    }
+                lang: 'en',
+                toast: false,
+                toggleLang() {
+                    this.lang = this.lang === 'en' ? 'ru' : 'en';
+                }
+            }
+        }
+
+        function characterCarousel() {
+            return {
+                currentIndex: 0,
+                prev() {
+                    this.currentIndex = this.currentIndex === 0 ? 20 : this.currentIndex - 1;
                 },
-                copyDevContact() {
-                    navigator.clipboard.writeText('@MrKirri').then(() => {
-                        alert('Dev tag copied to clipboard!');
-                    });
+                next() {
+                    this.currentIndex = this.currentIndex === 20 ? 0 : this.currentIndex + 1;
+                },
+                getFormattedIndex() {
+                    const num = this.currentIndex + 1;
+                    return num < 10 ? '0' + num : num;
+                },
+                getCurrentName() {
+                    if (this.currentIndex === 0) {
+                        return this.lang === 'en' ? 'Alexander (Protagonist)' : 'Александр (Протагонист)';
+                    }
+                    return this.lang === 'en' ? `Operative Sub-Officer #${this.currentIndex + 1}` : `Милиционер-Исполнитель №${this.currentIndex + 1}`;
+                },
+                getCurrentBio() {
+                    if (this.currentIndex === 0) {
+                        return this.lang === 'en' 
+                            ? 'Commander-in-Chief. Charged with full-scale industrial infrastructure maintenance, operational grid coordination, and sector threat suppression protocols.'
+                            : 'Главнокомандующий подсектора. На чьи плечи возложена полная стабилизация производственных линий, координация снабжения и ликвидация системных угроз.';
+                    }
+                    return this.lang === 'en'
+                        ? 'Classified sub-sector asset deployed under strict military-militia command structure. Authorized for tactical containment and asset distribution tasks.'
+                        : 'Засекреченный сотрудник ведомства, прикомандированный к структуре управления. Уполномочен проводить операции по удержанию секторов и распределению ресурсов.';
                 }
             }
         }
