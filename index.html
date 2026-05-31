@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project RTS | Tactical Real-Time Strategy</title>
+    <!-- Каллиграфическая фавиконка игры -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22 width=%22100%22 height=%22100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23000000%22/><text y=%2268%22 x=%2250%22 font-family=%22'Brush Script MT', 'Apple Chancery', cursive%22 font-size=%2260%22 font-weight=%22bold%22 fill=%22%2310b981%22 text-anchor=%22middle%22>RTS</text></svg>">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { background-color: #0a0a0a; color: #a3a3a3; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #222222; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+    </style>
+</head>
+<body class="antialiased font-sans selection:bg-neutral-800 selection:text-emerald-400">
+
+    <!-- Уведомления (Toast) -->
+    <div class="fixed bottom-5 right-5 z-50 pointer-events-none" x-data="{ show: false }" @notify.window="show = true; setTimeout(() => show = false, 3000)">
+        <div x-show="show" x-transition class="bg-neutral-900 text-neutral-50 px-4 py-2.5 rounded-lg text-xs font-semibold shadow-xl flex items-center gap-2 border border-neutral-800">
+            <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            <span>Welcome to the tactical grid. Stay tuned!</span>
+        </div>
+    </div>
+
+    <div class="max-w-3xl mx-auto px-6 py-16 sm:py-24 space-y-20" x-data="gameLauncherApp()">
+        
+        <!-- ХЕДЕР / СТАТУС РАЗРАБОТКИ -->
+        <header class="space-y-6">
+            <div class="flex items-center justify-between border-b border-neutral-900 pb-4">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border bg-[#141414] border-[#222222]">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="text-neutral-300 font-mono text-[11px]" x-text="'STAGE: ALPHA DEVELOPMENT'"></span>
+                </div>
+                <div class="text-xs font-mono text-neutral-500 hover:text-emerald-400 transition-colors cursor-pointer" @click="copyDevContact()">
+                    @MrKirri Dev Log
+                </div>
+            </div>
+
+            <!-- Главный тайтл игры -->
+            <div class="space-y-3">
+                <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-neutral-100">Project <span class="text-emerald-500">RTS</span></h1>
+                <p class="text-lg sm:text-xl font-medium text-neutral-400 tracking-wide">A minimalist real-time strategy focusing on tactical asset pipelines and macro-control execution.</p>
+            </div>
+        </header>
+
+        <!-- ГЛАВНЫЕ КНОПКИ ДЕЙСТВИЯ -->
+        <section class="flex flex-wrap items-center gap-4 pt-2">
+            <a href="#subscribe" class="px-5 py-2.5 text-sm font-semibold rounded-lg bg-emerald-500 text-black hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/10">
+                Join Playtest
+            </a>
+            <button @click="$dispatch('notify')" class="px-5 py-2.5 text-sm font-semibold rounded-lg bg-[#141414] border border-[#222222] text-neutral-200 hover:border-neutral-700 transition-all">
+                Pitch Deck & GDD
+            </button>
+            <div class="hidden sm:block h-6 w-px bg-[#222222] mx-1"></div>
+            <span class="text-xs font-mono text-neutral-500">Coming to Itch.io & Steam</span>
+        </section>
+
+        <!-- БЕНТО ГРИД: КЛЮЧЕВЫЕ ФИЧИ (CORE PILLARS) -->
+        <section class="space-y-4">
+            <div class="border-b border-neutral-900 pb-3">
+                <h2 class="text-xs font-bold text-neutral-500 uppercase tracking-widest">Core Gameplay Mechanics</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <!-- Фича 1 -->
+                <div class="bg-[#141414] border border-[#222222] rounded-xl p-5 hover:border-neutral-800 transition-all flex flex-col justify-between min-h-[140px]">
+                    <div class="text-emerald-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg></div>
+                    <div class="space-y-1">
+                        <h3 class="text-sm font-semibold text-neutral-200">Asset Pipelines</h3>
+                        <p class="text-xs text-neutral-500 leading-relaxed">No bloat resources. Build, refine, and deploy combat units via integrated supply lines.</p>
+                    </div>
+                </div>
+                <!-- Фича 2 -->
+                <div class="bg-[#141414] border border-[#222222] rounded-xl p-5 hover:border-neutral-800 transition-all flex flex-col justify-between min-h-[140px]">
+                    <div class="text-emerald-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+                    <div class="space-y-1">
+                        <h3 class="text-sm font-semibold text-neutral-200">High Team Velocity</h3>
+                        <p class="text-xs text-neutral-500 leading-relaxed">Optimized performance metrics under heavy micro-management. Zero simulation lag.</p>
+                    </div>
+                </div>
+                <!-- Фича 3 -->
+                <div class="bg-[#141414] border border-[#222222] rounded-xl p-5 hover:border-neutral-800 transition-all flex flex-col justify-between min-h-[140px]">
+                    <div class="text-emerald-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
+                    <div class="space-y-1">
+                        <h3 class="text-sm font-semibold text-neutral-200">Tactical Alignment</h3>
+                        <p class="text-xs text-neutral-500 leading-relaxed">Artistic integrity meets technical fidelity. Every combat vector is calculated in real time.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- РОАДМАП ПРОЕКТА (ИНТЕРАКТИВНЫЙ ТАБЛИЧНЫЙ ВИД) -->
+        <section class="space-y-4">
+            <div class="border-b border-neutral-900 pb-3">
+                <h2 class="text-xs font-bold text-neutral-500 uppercase tracking-widest">Production Roadmap</h2>
+            </div>
+
+            <div class="bg-[#141414] border border-[#222222] rounded-xl overflow-hidden">
+                <!-- Навигация по фазам -->
+                <div class="flex border-b border-[#222222] text-xs font-mono">
+                    <button @click="currentPhase = 'phase1'" class="flex-1 py-3 text-center transition-colors" :class="currentPhase === 'phase1' ? 'text-emerald-400 bg-[#1a1a1a] font-bold border-b border-emerald-500' : 'text-neutral-500 hover:text-neutral-400'">PHASE 01: CORE</button>
+                    <button @click="currentPhase = 'phase2'" class="flex-1 py-3 text-center transition-colors" :class="currentPhase === 'phase2' ? 'text-emerald-400 bg-[#1a1a1a] font-bold border-b border-emerald-500' : 'text-neutral-500 hover:text-neutral-400'">PHASE 02: SCALE</button>
+                    <button @click="currentPhase = 'phase3'" class="flex-1 py-3 text-center transition-colors" :class="currentPhase === 'phase3' ? 'text-emerald-400 bg-[#1a1a1a] font-bold border-b border-emerald-500' : 'text-neutral-500 hover:text-neutral-400'">PHASE 03: RELEASE</button>
+                </div>
+
+                <!-- Контент фаз роадмапа -->
+                <div class="p-6 text-sm text-neutral-400 min-h-[120px]">
+                    <div x-show="currentPhase === 'phase1'" x-transition class="space-y-2">
+                        <div class="flex items-center gap-2 text-xs text-emerald-400 font-mono">● COMPLETED</div>
+                        <p class="text-neutral-200 font-medium">Architecture & Game Design Documentation (GDD)</p>
+                        <p class="text-xs text-neutral-500">Establishing asset pipelines, unit stats balance matrices, and base pathfinding nodes logic.</p>
+                    </div>
+                    <div x-show="currentPhase === 'phase2'" x-transition class="space-y-2">
+                        <div class="flex items-center gap-2 text-xs text-amber-500 font-mono">▲ IN PROGRESS</div>
+                        <p class="text-neutral-200 font-medium">Cross-functional System Assembly & Beta Build</p>
+                        <p class="text-xs text-neutral-500">Integrating illustrator concept assets, refining combat UI, and locking the playtest milestone scope.</p>
+                    </div>
+                    <div x-show="currentPhase === 'phase3'" x-transition class="space-y-2">
+                        <div class="flex items-center gap-2 text-xs text-neutral-600 font-mono">○ PLANNED</div>
+                        <p class="text-neutral-200 font-medium">Public Beta Launch on Itch.io & Feedback Loop</p>
+                        <p class="text-xs text-neutral-500">Deploying vertical slice, gathering telemetry metrics, and optimizing sprint iterations for the Steam upgrade.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ФОРМА ПОДПИСКИ НА ПЛЕЙТЕСТ -->
+        <section id="subscribe" class="bg-[#141414] border border-[#222222] rounded-xl p-6 space-y-4">
+            <div class="space-y-1">
+                <h3 class="text-base font-semibold text-neutral-200">Secure Playtest Access</h3>
+                <p class="text-xs text-neutral-500">Leave your email to be notified when the closed alpha builds and vertical slice drops on Itch.io.</p>
+            </div>
+
+            <form @submit.prevent="submitEmail()" class="flex flex-col sm:flex-row gap-2">
+                <input 
+                    type="email" 
+                    x-model="emailInput" 
+                    placeholder="Enter your commander email" 
+                    required
+                    class="flex-1 px-3.5 py-2 text-sm bg-[#0a0a0a] border border-[#222222] rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-emerald-500 transition-colors"
+                >
+                <button type="submit" class="px-4 py-2 text-sm font-semibold rounded-lg bg-neutral-100 text-neutral-950 hover:bg-neutral-200 transition-colors shrink-0">
+                    Request Invite
+                </button>
+            </form>
+        </section>
+
+        <!-- ТЕХНИЧЕСКИЙ СПЕК / СТЕК РАЗРАБОТКИ -->
+        <section class="space-y-3">
+            <div class="border-b border-neutral-900 pb-2">
+                <h3 class="text-xs font-bold text-neutral-500 uppercase tracking-widest">Engine & Pipeline Metrics</h3>
+            </div>
+            <div class="flex flex-wrap gap-2 text-xs text-neutral-400 font-mono">
+                <span class="px-2.5 py-1 bg-[#141414] border border-[#222222] rounded">Custom Logic Architecture</span>
+                <span class="px-2.5 py-1 bg-[#141414] border border-[#222222] rounded">Deterministic Simulation</span>
+                <span class="px-2.5 py-1 bg-[#141414] border border-[#222222] rounded">60 FPS Locked UI</span>
+            </div>
+        </section>
+
+        <!-- ФУТЕР -->
+        <footer class="pt-8 border-t border-neutral-900 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-neutral-600">
+            <p>© 2026 Project RTS. Driven by pure precision.</p>
+            <div class="flex gap-4 font-mono text-[10px] tracking-wider uppercase">
+                <a href="https://t.me/MrKirri" target="_blank" rel="noopener noreferrer" class="hover:text-emerald-400 transition-colors">Telegram</a>
+                <span>|</span>
+                <span class="text-neutral-700">A18 Pro Engine Optimized</span>
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+        function gameLauncherApp() {
+            return {
+                currentPhase: 'phase2', // Активная фаза по умолчанию
+                emailInput: '',
+                
+                submitEmail() {
+                    if(this.emailInput.trim() !== '') {
+                        // Эмуляция отправки или сохранения
+                        this.$dispatch('notify');
+                        this.emailInput = '';
+                    }
+                },
+                copyDevContact() {
+                    navigator.clipboard.writeText('@MrKirri').then(() => {
+                        alert('Dev tag copied to clipboard!');
+                    });
+                }
+            }
+        }
+    </script>
+</body>
+</html>
